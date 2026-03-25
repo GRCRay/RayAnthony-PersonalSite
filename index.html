@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ray Anthony | AI Solutions Builder</title>
+  <style>
+    /* ── Theme Variables ── */
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --border: #e5e7eb;
+      --shadow: rgba(0, 0, 0, 0.06);
+      --shadow-md: rgba(0, 0, 0, 0.12);
+      --toggle-bg: #e5e7eb;
+      --toggle-knob: #ffffff;
+    }
+    [data-theme="dark"] {
+      --bg: #0d0d0d;
+      --surface: #1c1c1e;
+      --text: #f2f2f7;
+      --text-muted: #8e8e93;
+      --accent: #818cf8;
+      --accent-soft: #1e1b4b;
+      --border: #2c2c2e;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --shadow-md: rgba(0, 0, 0, 0.5);
+      --toggle-bg: #3a3a3c;
+      --toggle-knob: #f2f2f7;
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* ── Dark Mode Toggle ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toggle-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--toggle-bg);
+      border-radius: 999px;
+      transition: background 0.3s ease;
+    }
+    .toggle-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: var(--toggle-knob);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+    .toggle input:checked ~ .toggle-track { background: var(--accent); }
+    .toggle input:checked ~ .toggle-knob { transform: translateX(20px); }
+    .toggle-icon { font-size: 0.9rem; }
+
+    /* ── Main Layout ── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px var(--shadow);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* ── Profile Section ── */
+    .profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.25rem;
+    }
+
+    /* Avatar */
+    .avatar-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      cursor: pointer;
+    }
+    .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+    .avatar-img {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      display: block;
+    }
+    .avatar-placeholder {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 3px solid var(--accent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: var(--accent);
+    }
+    .avatar-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(79, 70, 229, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 0.5rem;
+    }
+    #avatar-input { display: none; }
+
+    /* Name & Title */
+    .profile-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .profile-title {
+      font-size: 0.95rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-top: -0.75rem;
+    }
+
+    /* Bio */
+    .bio {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      line-height: 1.75;
+    }
+
+    /* Certification Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    /* Skills */
+    .skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .skill-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* ── Section Headings ── */
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Projects Section ── */
+    .project-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      text-decoration: none;
+      color: inherit;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+    .project-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px var(--shadow-md);
+    }
+    .project-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .project-info { flex: 1; }
+    .project-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+    }
+    .project-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .project-link {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-top: 0.4rem;
+      display: block;
+    }
+
+    /* ── Contact Form ── */
+    .form { display: flex; flex-direction: column; gap: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 110px; }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+      align-self: flex-start;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); }
+    .form-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: -0.25rem;
+    }
+    .form-success {
+      display: none;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    [data-theme="dark"] .form-success {
+      background: #14532d;
+      color: #86efac;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+    /* ── Mobile ── */
+    @media (max-width: 520px) {
+      main { padding: 2rem 1rem 3rem; gap: 1.75rem; }
+      .card { padding: 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .profile-name { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar with Dark Mode Toggle -->
+  <header>
+    <div class="toggle-wrap">
+      <span class="toggle-icon">☀️</span>
+      <label class="toggle" aria-label="Toggle dark mode">
+        <input type="checkbox" id="theme-toggle" checked />
+        <span class="toggle-track"></span>
+        <span class="toggle-knob"></span>
+      </label>
+      <span class="toggle-icon">🌙</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Profile Card -->
+    <div class="card profile">
+
+      <!-- Avatar with upload -->
+      <div class="avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to upload your photo">
+        <div class="avatar-placeholder" id="avatar-placeholder">👤</div>
+        <img class="avatar-img" id="avatar-img" src="" alt="Ray Anthony" style="display:none;" />
+        <div class="avatar-overlay">UPLOAD<br>PHOTO</div>
+      </div>
+      <input type="file" id="avatar-input" accept="image/*" />
+
+      <!-- Name & Title -->
+      <div>
+        <h1 class="profile-name">Ray Anthony</h1>
+        <p class="profile-title">AI Solutions Builder &amp; No-Code Developer</p>
+      </div>
+
+      <!-- Certification Badge -->
+      <div class="badge">
+        🏅 Oracle AI Associate Certified
+      </div>
+
+      <!-- Bio -->
+      <p class="bio">
+        I help small businesses and entrepreneurs leverage the power of AI and no-code platforms to build smarter tools, automate operations, and launch faster. From AI-powered voice agents that answer your phones 24/7, to fully functional web apps and landing pages — I turn complex technology into simple, working solutions.
+      </p>
+
+      <hr class="divider" style="width:100%;" />
+
+      <!-- Skills -->
+      <div style="width:100%;">
+        <p class="section-title" style="text-align:center;">Skills &amp; Tools</p>
+        <div class="skills-grid">
+          <span class="skill-tag">AI Voice Agents · Retell AI</span>
+          <span class="skill-tag">Claude AI</span>
+          <span class="skill-tag">Google Gemini</span>
+          <span class="skill-tag">ChatGPT</span>
+          <span class="skill-tag">Lovable (No-Code)</span>
+          <span class="skill-tag">Mobile App Development</span>
+          <span class="skill-tag">AI Integration</span>
+          <span class="skill-tag">Workflow Automation</span>
+          <span class="skill-tag">Landing Page Design</span>
+          <span class="skill-tag">Prompt Engineering</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Card -->
+    <div class="card">
+      <p class="section-title">Featured Project</p>
+      <a class="project-card" href="https://ease-and-care-app.lovable.app" target="_blank" rel="noopener noreferrer">
+        <div class="project-icon">❤️‍🩺</div>
+        <div class="project-info">
+          <p class="project-name">Vital Check</p>
+          <p class="project-desc">An AI-powered health monitoring app designed to make wellness tracking simple, accessible, and intelligent. Built with Claude AI and modern no-code tooling.</p>
+          <span class="project-link">ease-and-care-app.lovable.app ↗</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Contact Card -->
+    <div class="card">
+      <p class="section-title">Get In Touch</p>
+
+      <div class="form-success" id="form-success">
+        ✅ Message sent! I'll get back to you within 24 hours.
+      </div>
+
+      <!--
+        TO ENABLE FORM SUBMISSIONS:
+        1. Go to https://formspree.io and create a free account
+        2. Create a new form and copy your form ID (looks like: xabcdefg)
+        3. Replace YOUR_FORMSPREE_ID below with your actual form ID
+      -->
+      <form class="form" id="contact-form" action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Jane Smith" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="service">Interested In</label>
+          <select id="service" name="service">
+            <option value="">Select a service...</option>
+            <option value="voice-agent">AI Voice Agent Setup</option>
+            <option value="landing-page">AI Landing Page / Website</option>
+            <option value="app">Custom AI-Powered App</option>
+            <option value="automation">Workflow Automation</option>
+            <option value="other">Other / Not Sure Yet</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" placeholder="Tell me about your project or what you're looking to build..." required></textarea>
+        </div>
+        <button type="submit" class="btn">Send Message →</button>
+        <p class="form-note">I typically respond within 24 hours.</p>
+      </form>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2026 Ray Anthony · AI Solutions Builder</p>
+  </footer>
+
+  <script>
+    // ── Dark Mode Toggle ──
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Persist preference
+    // Default is dark; only override if user has explicitly chosen light
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      html.setAttribute('data-theme', 'light');
+      toggle.checked = false;
+    }
+
+    toggle.addEventListener('change', () => {
+      const isDark = toggle.checked;
+      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // ── Avatar Upload ──
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarPlaceholder = document.getElementById('avatar-placeholder');
+
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        avatarImg.src = ev.target.result;
+        avatarImg.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ── Contact Form (Formspree AJAX) ──
+    const form = document.getElementById('contact-form');
+    const successMsg = document.getElementById('form-success');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('.btn');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          form.style.display = 'none';
+          successMsg.style.display = 'block';
+        } else {
+          btn.textContent = 'Send Message →';
+          btn.disabled = false;
+          alert('Something went wrong. Please try again.');
+        }
+      } catch {
+        btn.textContent = 'Send Message →';
+        btn.disabled = false;
+        alert('Network error. Please try again.');
+      }
+    });
+  </script>
+
+</body>
+</html>
